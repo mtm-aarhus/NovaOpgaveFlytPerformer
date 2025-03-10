@@ -38,7 +38,7 @@ def cookie_getter(username, password):
         options.add_argument("force-device-scale-factor=0.5")
         options.add_argument("--disable-extensions")
         options.add_argument("--profile-directory=Default")
-        options.add_argument("--remote-debugging-port=9222")
+        options.add_argument('--remote-debugging-pipe')
 
         # Initialize Chrome WebDriver
         service = Service()  # Set correct path to ChromeDriver
