@@ -12,6 +12,7 @@ from selenium.webdriver.chrome.options import Options
 from pathlib import Path
 import pandas as pd
 import math
+
 #Henter de nødvendige cookies
 def cookie_getter(username, password):
     try:
@@ -186,31 +187,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     # Define URL
     url = "https://cap-awswlbs-wm3q2021.kmd.dk/KMDNovaESDH/api/ServiceRelayer/kmdnova/v1/task/AdvancedSearch"
 
-    # Define Headers
-    headers = {
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Connection": "keep-alive",
-        "Content-Type": "application/json;charset=UTF-8",
-        "Origin": "https://cap-awswlbs-wm3q2021.kmd.dk",
-        "RequestVerificationToken": out_request_verification_token, 
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-origin",
-        "X-Requested-With": "XMLHttpRequest",
-        "sec-ch-ua": "\"Not_A Brand\";v=\"99\", \"Microsoft Edge\";v=\"109\", \"Chromium\";v=\"109\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Windows\"",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.55"
-    }
-
-    # Define Cookies
-    cookies = {
-        "kmdNovaIndstillingerCurrent": "MTM-Byggeri",
-        "__RequestVerificationToken_L0tNRE5vdmFFU0RI0": out_verification_token, 
-        "KMDLogonWebSessionHandler": out_kmd_logon_web_session_handler  
-    }
-
     # Define Request Body
     body = {
         "Criteria": {
@@ -257,31 +233,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
 
     #Vi erstatter det antal gange vi skal
     while AntalKørsler > 0:
-        # Define headers
-        headers = {
-            "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Connection": "keep-alive",
-            "Content-Type": "application/json;charset=UTF-8",
-            "Origin": "https://cap-awswlbs-wm3q2021.kmd.dk",
-            "RequestVerificationToken": out_request_verification_token,  # Assuming defined elsewhere
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "X-Requested-With": "XMLHttpRequest",
-            "sec-ch-ua": "\"Not_A Brand\";v=\"99\", \"Microsoft Edge\";v=\"109\", \"Chromium\";v=\"109\"",
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": "\"Windows\"",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.55"
-        }
-
-        # Define cookies
-        cookies = {
-            "kmdNovaIndstillingerCurrent": "MTM-Byggeri",
-            "__RequestVerificationToken_L0tNRE5vdmFFU0RI0": out_verification_token,  # Assuming defined elsewhere
-            "KMDLogonWebSessionHandler": out_kmd_logon_web_session_handler  # Assuming defined elsewhere
-        }
-
         # Define request body (JSON)
         body = {
             "Criteria": {
@@ -316,11 +267,11 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
 
         # Get response content
         ResponseOut = response.text
-        AktiviteterSendt += 100
+        AktiviteterSendt += 2000
 
         #Vi kører hvis der er aktiviteter
         if '"ItemsCount":0}' not in ResponseOut:
-            orchestrator_connection.log_info(f'Kigger på aktiviteter i intervallet {AktiviteterSendt - 100} - {AktiviteterSendt}')
+            orchestrator_connection.log_info(f'Kigger på aktiviteter i intervallet {AktiviteterSendt - 2000} - {AktiviteterSendt}')
 
             response_json = json.loads(ResponseOut)
 
@@ -337,29 +288,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
                     # Construct the API URL
                     url = f"https://cap-awswlbs-wm3q2021.kmd.dk/KMDNovaESDH/api/ServiceRelayer/KMDNova/v1/mainSearch/search?v=3.5.2.0&Id={SagsNummer}&SearchObjectType=Case"
 
-                    # Define headers
-                    headers = {
-                        "Accept": "application/json, text/plain, */*",
-                        "Accept-Language": "en-US,en;q=0.9",
-                        "Connection": "keep-alive",
-                        "RequestVerificationToken": out_request_verification_token , 
-                        "Sec-Fetch-Dest": "empty",
-                        "Sec-Fetch-Mode": "cors",
-                        "Sec-Fetch-Site": "same-origin",
-                        "X-Requested-With": "XMLHttpRequest",
-                        "sec-ch-ua": "\"Not_A Brand\";v=\"99\", \"Microsoft Edge\";v=\"109\", \"Chromium\";v=\"109\"",
-                        "sec-ch-ua-mobile": "?0",
-                        "sec-ch-ua-platform": "\"Windows\"",
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.61"
-                    }
-
-                    # Define cookies
-                    cookies = {
-                        "kmdNovaIndstillingerCurrent": "MTM-Byggeri",
-                        "__RequestVerificationToken_L0tNRE5vdmFFU0RI0": out_verification_token, 
-                        "KMDLogonWebSessionHandler": out_kmd_logon_web_session_handler  
-                    }
-
                     # Send GET request
                     response = requests.get(url, headers=headers, cookies=cookies)
                     response.raise_for_status()
@@ -370,8 +298,7 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
                 else:
                     orchestrator_connection.log_info('Same casenumber - no need for new api call')
                 # Extract nested value safely
-                has_caseworker_user = (
-                ResponseSagsinformation.get("Case", {}).get("Caseworker", {}).get("HasCaseworkerUser", False))
+                has_caseworker_user = (ResponseSagsinformation.get("Case", {}).get("Caseworker", {}).get("HasCaseworkerUser", False))
 
                 if has_caseworker_user:
                     NovaSagensSagsbehandler = str(ResponseSagsinformation.get("Case").get("Caseworker").get("CaseworkerUser").get("UserId"))
@@ -419,30 +346,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
 
         # Define API URL
         url = "https://cap-awswlbs-wm3q2021.kmd.dk/KMDNovaESDH/api/ServiceRelayer/kmdnova/v1/task/EditTask"
-
-        # Define Headers
-        headers = {
-            "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Connection": "keep-alive",
-            "Content-Type": "application/json;charset=UTF-8",
-            "RequestVerificationToken": out_request_verification_token,
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.55",
-            "X-Requested-With": "XMLHttpRequest",
-            "sec-ch-ua": "\"Not_A Brand\";v=\"99\", \"Microsoft Edge\";v=\"109\", \"Chromium\";v=\"109\"",
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": "\"Windows\""
-        }
-
-        # Define Cookies
-        cookies = {
-            "kmdNovaIndstillingerCurrent": "MTM-Byggeri",
-            "__RequestVerificationToken_L0tNRE5vdmFFU0RI0": out_verification_token,
-            "KMDLogonWebSessionHandler": out_kmd_logon_web_session_handler
-        }
 
         # Define Request Body
         body = json.dumps(UpdateActivity)  # Ensure this is a JSON object or string
