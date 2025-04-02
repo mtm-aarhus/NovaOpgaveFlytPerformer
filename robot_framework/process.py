@@ -280,9 +280,12 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
 
             for element in item_array:
                 SagsNummer = str(element['CaseNumber'])
+                existing_casenumber = next((item for item in sagsliste if item[0] == SagsNummer), None)
                 orchestrator_connection.log_info(f'Processing {element}')
-                if SagsNummer not in sagsliste:
-                    sagsliste.append(SagsNummer)
+                
+                if existing_casenumber:
+                    NovaSagensSagsbehandler = existing_casenumber[1]
+                else:
                     orchestrator_connection.log_info(f'Nyt sagsnummer processeres {SagsNummer}')
                     
                     # Construct the API URL
@@ -295,20 +298,20 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
                     # Get response content
                     ResponseOut = response.text
                     ResponseSagsinformation = json.loads(ResponseOut)
-                else:
-                    orchestrator_connection.log_info('Same casenumber - no need for new api call')
+                    orchestrator_connection.log_info('Sagnummer not in list')
                 # Extract nested value safely
-                has_caseworker_user = (ResponseSagsinformation.get("Case", {}).get("Caseworker", {}).get("HasCaseworkerUser", False))
+                    has_caseworker_user = (ResponseSagsinformation.get("Case", {}).get("Caseworker", {}).get("HasCaseworkerUser", False))
 
-                if has_caseworker_user:
-                    NovaSagensSagsbehandler = str(ResponseSagsinformation.get("Case").get("Caseworker").get("CaseworkerUser").get("UserId"))
-                    orchestrator_connection.log_info(f'Har sagsbehandler {NovaSagensSagsbehandler}')
-                else:
-                    try:
-                        NovaSagensSagsbehandler = str(ResponseSagsinformation.get("Case").get("Caseworker").get("CaseworkerUnit").get("ShortName"))
-                        orchestrator_connection.log_info(f'Ingen officiel sagsbehandler, vælger unit {NovaSagensSagsbehandler}')
-                    except Exception:
-                        raise Exception
+                    if has_caseworker_user:
+                        NovaSagensSagsbehandler = str(ResponseSagsinformation.get("Case").get("Caseworker").get("CaseworkerUser").get("UserId"))
+                        orchestrator_connection.log_info(f'Har sagsbehandler {NovaSagensSagsbehandler}')
+                    else:
+                        try:
+                            NovaSagensSagsbehandler = str(ResponseSagsinformation.get("Case").get("Caseworker").get("CaseworkerUnit").get("ShortName"))
+                            orchestrator_connection.log_info(f'Ingen officiel sagsbehandler, vælger unit {NovaSagensSagsbehandler}')
+                        except Exception:
+                            raise Exception
+                    sagsliste.append([SagsNummer, NovaSagensSagsbehandler])
                 if NovaSagensSagsbehandler.lower() == SagensSagsbehandler.lower():
                     orchestrator_connection.log_info(f"Match fundet: {NovaSagensSagsbehandler}")
                     element['Caseworker']['CaseworkerUser'] = json.loads(ResponseOut_caseworker)
@@ -340,17 +343,17 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     datatable.to_csv(csv_full_path, index=False, encoding="utf-8")
 
     # Step 6: Iterate Through DataFrame Rows (Equivalent to UiPath For Each Row)
-    for index, row in datatable.iterrows():
-        UpdateActivity = row['UpdateActivity']
-        orchestrator_connection.log_info(f'robotten ændrer følgende aktivitet {UpdateActivity}')
+    # for index, row in datatable.iterrows():
+    #     UpdateActivity = row['UpdateActivity']
+    #     orchestrator_connection.log_info(f'robotten ændrer følgende aktivitet {UpdateActivity}')
 
-        # Define API URL
-        url = "https://cap-awswlbs-wm3q2021.kmd.dk/KMDNovaESDH/api/ServiceRelayer/kmdnova/v1/task/EditTask"
+    #     # Define API URL
+    #     url = "https://cap-awswlbs-wm3q2021.kmd.dk/KMDNovaESDH/api/ServiceRelayer/kmdnova/v1/task/EditTask"
 
-        # Define Request Body
-        body = json.dumps(UpdateActivity)  # Ensure this is a JSON object or string
+    #     # Define Request Body
+    #     body = json.dumps(UpdateActivity)  # Ensure this is a JSON object or string
 
-        # Make the POST Request
-        response = requests.post(url, headers=headers, cookies=cookies, data=body, timeout=None)
-        response.raise_for_status()  # Raise error for bad responses (4xx, 5xx) 
+    #     # Make the POST Request
+    #     response = requests.post(url, headers=headers, cookies=cookies, data=body, timeout=None)
+    #     response.raise_for_status()  # Raise error for bad responses (4xx, 5xx) 
     return sagsliste
