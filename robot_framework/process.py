@@ -343,17 +343,17 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     datatable.to_csv(csv_full_path, index=False, encoding="utf-8")
 
     # Step 6: Iterate Through DataFrame Rows (Equivalent to UiPath For Each Row)
-    # for index, row in datatable.iterrows():
-    #     UpdateActivity = row['UpdateActivity']
-    #     orchestrator_connection.log_info(f'robotten ændrer følgende aktivitet {UpdateActivity}')
+    for index, row in datatable.iterrows():
+        UpdateActivity = row['UpdateActivity']
+        orchestrator_connection.log_info(f'robotten ændrer følgende aktivitet {UpdateActivity}')
 
-    #     # Define API URL
-    #     url = "https://cap-awswlbs-wm3q2021.kmd.dk/KMDNovaESDH/api/ServiceRelayer/kmdnova/v1/task/EditTask"
+        # Define API URL
+        url = "https://cap-awswlbs-wm3q2021.kmd.dk/KMDNovaESDH/api/ServiceRelayer/kmdnova/v1/task/EditTask"
 
-    #     # Define Request Body
-    #     body = json.dumps(UpdateActivity)  # Ensure this is a JSON object or string
+        # Define Request Body
+        body = json.dumps(UpdateActivity)  # Ensure this is a JSON object or string
 
-    #     # Make the POST Request
-    #     response = requests.post(url, headers=headers, cookies=cookies, data=body, timeout=None)
-    #     response.raise_for_status()  # Raise error for bad responses (4xx, 5xx) 
+        # Make the POST Request
+        response = requests.post(url, headers=headers, cookies=cookies, data=body, timeout=None)
+        response.raise_for_status()  # Raise error for bad responses (4xx, 5xx) 
     return sagsliste
