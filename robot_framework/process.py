@@ -276,7 +276,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
             response_json = json.loads(ResponseOut)
 
             item_array = response_json.get('Items', []) 
-            
 
             for element in item_array:
                 SagsNummer = str(element['CaseNumber'])
