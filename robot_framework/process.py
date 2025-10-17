@@ -34,7 +34,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
         cache["tasks"][AktivitetsSagsbehandler] = get_task_list(str(uuid.uuid4()), AktivitetsSagsbehandler, access_token, Nova_URL)
 
     task_list = cache["tasks"][AktivitetsSagsbehandler]
-    print(cache)
 
     tasks_to_remove = []
     conn = get_db_connection()
