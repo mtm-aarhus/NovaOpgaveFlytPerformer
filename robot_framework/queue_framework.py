@@ -22,7 +22,7 @@ def main():
 
     orchestrator_connection.log_trace("Robot Framework started.")
     initialize.initialize(orchestrator_connection)
-    sagsliste = []
+    cache = {"cases": {}, "tasks": {}, "caseworkers": {}}
 
     queue_element = None
     error_count = 0
@@ -42,7 +42,7 @@ def main():
                     break  # Break queue loop
 
                 try:
-                    sagsliste = process.process(orchestrator_connection, queue_element, sagsliste)
+                    cache = process.process(orchestrator_connection, queue_element, cache)
                     orchestrator_connection.set_queue_element_status(queue_element.id, QueueStatus.DONE)
 
                 except BusinessError as error:
