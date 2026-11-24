@@ -84,6 +84,8 @@ def compare_caseworker_from_case(sags_uuid, transaction, access_token, KMDNovaUR
     return caseworker_id
 
 
+
+
 def get_task_list(transaction, caseworker, access_token, KMDNovaURL):
     headers = {
         "Content-Type": "application/json",
@@ -94,11 +96,13 @@ def get_task_list(transaction, caseworker, access_token, KMDNovaURL):
     start_row = 1
     page_size = 500
     all_tasks = []
+    seen_task_ids = set()
+    to_start_date = datetime.now().isoformat()
 
     while True:
         data = {
             "common": {
-                "transactionId": transaction
+                "transactionId": str(uuid.uuid4())
             },
             "paging": {
                 "startRow": start_row,
@@ -106,10 +110,10 @@ def get_task_list(transaction, caseworker, access_token, KMDNovaURL):
             },
             "caseworker": {
                 "kspIdentity": {
-                        "racfId": caseworker
+                    "racfId": caseworker
                 }
             },
-            "toStartDate": datetime.now().isoformat(),
+            "toStartDate": to_start_date,
             "statusCode": ["S", "N"]
         }
 
@@ -118,15 +122,33 @@ def get_task_list(transaction, caseworker, access_token, KMDNovaURL):
         response_json = response.json()
 
         task_page = response_json.get("taskList", [])
-        all_tasks.extend(task_page)
 
-        paging_info = response_json.get("pagingInformation", {})
-        if not paging_info.get("hasMoreRows", False):
+        print(f"Start row: {start_row}, received: {len(task_page)}")
+
+        if not task_page:
             break
 
-        start_row += page_size
+        new_tasks = [
+            task for task in task_page
+            if task["taskUuid"] not in seen_task_ids
+        ]
+
+        # Prevent an infinite loop if Nova ignores pagination
+        if not new_tasks:
+            raise RuntimeError(
+                f"Nova returned no new tasks at startRow {start_row}"
+            )
+
+        all_tasks.extend(new_tasks)
+        seen_task_ids.update(task["taskUuid"] for task in new_tasks)
+
+        start_row += len(task_page)
+
+    print(f"Total tasks fetched: {len(all_tasks)}")
 
     return all_tasks
+
+
 
 
 def lookup_caseworker_by_racfId(racfId, transaction, access_token, KMDNovaURL):
